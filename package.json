@@ -3,25 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
+    "build-server": "cd server && npm run build",
+    "build-client": "cd client && npm run build",
+    "build": "npm run build-server && npm run build-client",
+    "start-server": "cd server && npm run start",
+    "start-client": "cd client && npm run start"
   },
+  "workspaces": [
+    "client",
+    "server"
+  ],
   "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.2.3"
+    "@monaco-editor/react": "^4.7.0",
+    "concurrently": "^9.0.1",
+    "shell-quote": "^1.8.2",
+    "spawn-rx": "^5.1.2"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.2.3",
-    "@eslint/eslintrc": "^3"
+    "@types/shell-quote": "^1.7.5"
   }
 }

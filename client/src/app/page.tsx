@@ -1,36 +1,32 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { useTheme } from "next-themes"
 import { Moon, Sun } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { TestArea } from "@/components/test-area"
-import { OutputArea } from "@/components/output-area"
-import { calculateManhattanDistance } from "@/lib/utils"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TestData, TestResult } from "@/types/common"
+import { Alert, AlertDescription } from "../components/ui/alert"
+import { TestArea } from "../components/test-area"
+import { OutputArea } from "../components/output-area"
+import { getSimilarity } from "../lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { TestData, TestResult } from "../types/common"
 
 interface MCPConfig {
   transportType: string
-  url: string
+  sseUrl: string
 }
-
-const params = new URLSearchParams(window.location.search);
-const PROXY_PORT = params.get("proxyPort") ?? "3000";
-const PROXY_SERVER_URL = `http://${window.location.hostname}:${PROXY_PORT}`;
 
 export default function Home() {
   const { theme, setTheme } = useTheme()
   const [config, setConfig] = useState<MCPConfig>({
     transportType: "sse",
-    url: "",
+    sseUrl: "",
   })
   const [isConnected, setIsConnected] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -40,7 +36,7 @@ export default function Home() {
   const [tools, setTools] = useState<Tool[]>([])
 
   const validateConfig = () => {
-    if (!config.url) {
+    if (!config.sseUrl) {
       setError("Server URL is required")
       return false
     }
@@ -62,12 +58,17 @@ export default function Home() {
         }
       )
 
-      const backendUrl = new URL(`${PROXY_SERVER_URL}/sse`);
-      backendUrl.searchParams.append("url", config.url);
+      const params = new URLSearchParams(window.location.search);
+      const PROXY_PORT = params.get("proxyPort") ?? "3000";
+      const PROXY_SERVER_URL = `http://${window.location.hostname}:${PROXY_PORT}`;
 
-      const transport = new SSEClientTransport(backendUrl)
-      await mcpClient.connect(transport)
-      
+      const backendUrl = new URL(`${PROXY_SERVER_URL}/sse`);
+      backendUrl.searchParams.append("transportType", "sse");
+      backendUrl.searchParams.append("url", config.sseUrl);
+
+      const clientTransport = new SSEClientTransport(backendUrl);
+      await mcpClient.connect(clientTransport)
+
       setClient(mcpClient)
       setIsConnected(true)
       const res = await mcpClient.listTools()
@@ -80,30 +81,6 @@ export default function Home() {
     }
   }
 
-  const checkConnection = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/proxy?url=${encodeURIComponent(`${config.url}/sse`)}`, {
-        method: "GET",
-        headers: {
-          'Accept': 'text/event-stream',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error("Server health check failed")
-      }
-
-      // For SSE connections, we'll consider it successful if we get a response
-      if (response.headers.get('content-type')?.includes('text/event-stream')) {
-        return true
-      }
-
-      return true
-    } catch {
-      return false
-    }
-  }, [config.url])
-
   const handleConnect = async () => {
     if (!validateConfig()) return
 
@@ -111,11 +88,6 @@ export default function Home() {
     setError("")
 
     try {
-      const isHealthy = await checkConnection()
-      if (!isHealthy) {
-        throw new Error("Failed to connect to MCP server")
-      }
-      
       await initClient()
     } catch {
       setError("Failed to connect to MCP server")
@@ -126,8 +98,9 @@ export default function Home() {
     }
   }
 
-  const handleTest = async (selectedTool: string, testData: TestData[]) => {
+  const handleTest = async (selectedTool: string, testData: TestData[], transformationCode: string) => {
     const results: TestResult[] = []
+    console.log("testData", testData)
 
     for (const item of testData) {
       try {
@@ -138,17 +111,30 @@ export default function Home() {
         const actualOutput = await client.callTool({
           name: selectedTool,
           arguments: item.params
-        })
+        });
+        const textValue = actualOutput.content[0].text;
+        const componentExamples = [...textValue.matchAll(/^\d+\.\s*(.+)(?=\n\nSimilarity Score)/gm)].map(m => m[1]);
+
+        // actualOutput = JSON.parse(actualOutput);
+        // actualOutput = actualOutput.map((item: any) => {
+        //   return item.text
+        // })
+
+        // actualOutput = (function(actualOutput: any) {
+        //   eval(transformationCode)
+        //   return actualOutput
+        // })(actualOutput);
+
         const similarityScore = item.params.expectedOutput
-          ? 1 - calculateManhattanDistance(
-              item.params.expectedOutput as Record<string, unknown>,
-              actualOutput
+          ? 1 - getSimilarity(
+              item.params.expectedOutput,
+              componentExamples
             )
           : undefined
 
         results.push({
           ...item,
-          actualOutput: actualOutput,
+          actualOutput: componentExamples,
           similarityScore: similarityScore ?? 0,
         })
       } catch {
@@ -162,19 +148,6 @@ export default function Home() {
 
     setTestResults(results)
   }
-
-  useEffect(() => {
-    if (isConnected) {
-      const interval = setInterval(async () => {
-        const isHealthy = await checkConnection()
-        if (!isHealthy) {
-          setIsConnected(false)
-        }
-      }, 60000) // Check every minute
-
-      return () => clearInterval(interval)
-    }
-  }, [isConnected, config, checkConnection])
 
   return (
     <main className="min-h-screen bg-background">
@@ -217,8 +190,8 @@ export default function Home() {
                 <Input
                   id="url"
                   placeholder="Enter server URL"
-                  value={config.url}
-                  onChange={(e) => setConfig({ ...config, url: e.target.value })}
+                  value={config.sseUrl}
+                  onChange={(e) => setConfig({ ...config, sseUrl: e.target.value })}
                   className="bg-white dark:bg-card"
                 />
               </div>
