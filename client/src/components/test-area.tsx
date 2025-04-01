@@ -17,18 +17,36 @@ interface TestAreaProps {
 }
 
 export function TestArea({ isConnected, onTest, tools }: TestAreaProps) {
-  const [testInput, setTestInput] = useState("")
+  const [testInput, setTestInput] = useState(`[
+  {
+    "params": {
+      "query": "Button component with icon and primary color"
+    },
+    "expectedOutput": [
+      "Button - Variants",
+      "Button - With icons",
+      "Button - Button.Icon",
+      "MediaQuery - useMediaQuery"
+    ]
+  },
+  {
+    "params": {
+      "query": "Loading state implementation in Table"
+    },
+    "expectedOutput": [
+      "Table - Render table under loading state",
+      "MediaQuery - useMediaQuery"
+    ]
+  }
+]`)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [selectedTool, setSelectedTool] = useState<string>("")
   const [transformationCode, setTransformationCode] = useState(`// Transform the actual output here
 // The actual output will be available as 'actualOutput' variable
-function transformOutput(actualOutput) {
-  console.log('Raw actualOutput:', actualOutput);
-  
+function transformOutput(actualOutput) {  
   // Get the text content from the actualOutput
   const textValue = actualOutput.content[0].text;
-  console.log('Text value:', textValue);
   
   // Updated regex pattern to match component name and similarity score
   const regex = /(\\d+\\.)\\s*([^\\n]+)\\s*Similarity Score:\\s*(\\d+\\.\\d+)/g;
@@ -39,14 +57,9 @@ function transformOutput(actualOutput) {
   regex.lastIndex = 0;
   
   while ((match = regex.exec(textValue)) !== null) {
-    console.log('Match found:', match);
-    results.push({ 
-      result: match[2].trim(), // Component name - Component example
-      embeddingSimilarity: parseFloat(match[3]) // Similarity score
-    });
+    results.push(match[2].trim());
   }
   
-  console.log('Final results:', results);
   return results;
 }
 

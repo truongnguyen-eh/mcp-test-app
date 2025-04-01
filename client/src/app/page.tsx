@@ -112,15 +112,11 @@ export default function Home() {
           arguments: item.params
         });
 
-        console.log('transformationCode', transformationCode, actualOutput)
-
         const transformedOutputFunction = new Function("actualOutput", transformationCode);
         const transformedOutput = transformedOutputFunction(actualOutput);
 
-        console.log('transformedOutput', transformedOutput)
-
-        const similarityScore = item.params.expectedOutput
-          ? 1 - getSimilarity(
+        const similarityScore = item.expectedOutput
+          ? getSimilarity(
               item.expectedOutput,
               transformedOutput
             )
@@ -134,7 +130,7 @@ export default function Home() {
       } catch {
         results.push({
           ...item,
-          actualOutput: [{ result: "Failed to get response from server", embeddingSimilarity: 0 }],
+          actualOutput: ["Failed to get response from server"],
           similarityScore: 0,
         })
       }
@@ -158,7 +154,7 @@ export default function Home() {
       </div>
 
       <div className="flex h-[calc(100vh-4rem)]">
-        <div className="w-1/3 p-4 border-r overflow-y-auto">
+        <div className="w-1/4 p-4 border-r overflow-y-auto">
           <Card className="bg-white dark:bg-card">
             <CardHeader>
               <CardTitle>Server Configuration</CardTitle>

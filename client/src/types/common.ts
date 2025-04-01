@@ -3,13 +3,8 @@ interface TestItem {
   expectedOutput: Array<string>
 }
 
-interface OutputItem {
-  result: string
-  embeddingSimilarity: number
-}
-
 interface TestItemResult extends TestItem {
-  actualOutput: Array<OutputItem>
+  actualOutput: Array<string>
   similarityScore: number
 }
 
