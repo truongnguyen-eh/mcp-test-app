@@ -6,14 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Alert, AlertDescription } from "./ui/alert"
 import { Textarea } from "./ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { TestData } from "../types/common"
+import { TestItem } from "../types/common"
 import { Tool } from "@modelcontextprotocol/sdk/types.js"
 import { Editor } from "@monaco-editor/react"
 
 interface TestAreaProps {
   isConnected: boolean
   tools: Tool[]
-  onTest: (selectedTool: string, testData: TestData[], transformationCode: string) => Promise<void>
+  onTest: (selectedTool: string, testData: TestItem[], transformationCode: string) => Promise<void>
 }
 
 export function TestArea({ isConnected, onTest, tools }: TestAreaProps) {
@@ -23,9 +23,35 @@ export function TestArea({ isConnected, onTest, tools }: TestAreaProps) {
   const [selectedTool, setSelectedTool] = useState<string>("")
   const [transformationCode, setTransformationCode] = useState(`// Transform the actual output here
 // The actual output will be available as 'actualOutput' variable
-actualOutput = actualOutput.map(item => {
-   return item
-});
+function transformOutput(actualOutput) {
+  console.log('Raw actualOutput:', actualOutput);
+  
+  // Get the text content from the actualOutput
+  const textValue = actualOutput.content[0].text;
+  console.log('Text value:', textValue);
+  
+  // Updated regex pattern to match component name and similarity score
+  const regex = /(\\d+\\.)\\s*([^\\n]+)\\s*Similarity Score:\\s*(\\d+\\.\\d+)/g;
+  let match;
+  const results = [];
+  
+  // Reset regex lastIndex to ensure we start from the beginning
+  regex.lastIndex = 0;
+  
+  while ((match = regex.exec(textValue)) !== null) {
+    console.log('Match found:', match);
+    results.push({ 
+      result: match[2].trim(), // Component name - Component example
+      embeddingSimilarity: parseFloat(match[3]) // Similarity score
+    });
+  }
+  
+  console.log('Final results:', results);
+  return results;
+}
+
+// Call the function with actualOutput
+return transformOutput(actualOutput);
 `)
 
   const handleGetOutput = async () => {

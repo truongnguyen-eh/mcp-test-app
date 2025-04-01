@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 
 interface TestResult {
   params: Record<string, unknown>
-  expectedOutput?: Record<string, unknown>
-  actualOutput?: Record<string, unknown>
+  expectedOutput?: Array<string>
+  actualOutput?: Array<string>
   similarityScore?: number
 }
 

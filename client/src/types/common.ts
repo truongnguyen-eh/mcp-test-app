@@ -1,11 +1,16 @@
-interface TestData {
+interface TestItem {
   params: Record<string, unknown>
-  expectedOutput: Record<string, unknown>
+  expectedOutput: Array<string>
 }
 
-interface TestResult extends TestData {
-  actualOutput: Record<string, unknown>
+interface OutputItem {
+  result: string
+  embeddingSimilarity: number
+}
+
+interface TestItemResult extends TestItem {
+  actualOutput: Array<OutputItem>
   similarityScore: number
 }
 
-export type { TestData, TestResult }
+export type { TestItem, TestItemResult }

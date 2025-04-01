@@ -6,8 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getSimilarity(array1: Array<string>, array2: Array<string>): number {
-  console.log("array1", array1)
-  console.log("array2", array2)
   const set1 = new Set(array1);
   const set2 = new Set(array2);
 

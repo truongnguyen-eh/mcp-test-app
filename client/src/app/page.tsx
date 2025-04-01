@@ -15,7 +15,7 @@ import { TestArea } from "../components/test-area"
 import { OutputArea } from "../components/output-area"
 import { getSimilarity } from "../lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
-import { TestData, TestResult } from "../types/common"
+import { TestItem, TestItemResult } from "../types/common"
 
 interface MCPConfig {
   transportType: string
@@ -31,7 +31,7 @@ export default function Home() {
   const [isConnected, setIsConnected] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
-  const [testResults, setTestResults] = useState<TestResult[]>([])
+  const [testResults, setTestResults] = useState<TestItemResult[]>([])
   const [client, setClient] = useState<Client | null>(null)
   const [tools, setTools] = useState<Tool[]>([])
 
@@ -98,11 +98,10 @@ export default function Home() {
     }
   }
 
-  const handleTest = async (selectedTool: string, testData: TestData[], transformationCode: string) => {
-    const results: TestResult[] = []
-    console.log("testData", testData)
+  const handleTest = async (selectedTool: string, testInput: TestItem[], transformationCode: string) => {
+    const results: TestItemResult[] = []
 
-    for (const item of testData) {
+    for (const item of testInput) {
       try {
         if (!client) {
           throw new Error("Client not connected")
@@ -112,35 +111,30 @@ export default function Home() {
           name: selectedTool,
           arguments: item.params
         });
-        const textValue = actualOutput.content[0].text;
-        const componentExamples = [...textValue.matchAll(/^\d+\.\s*(.+)(?=\n\nSimilarity Score)/gm)].map(m => m[1]);
 
-        // actualOutput = JSON.parse(actualOutput);
-        // actualOutput = actualOutput.map((item: any) => {
-        //   return item.text
-        // })
+        console.log('transformationCode', transformationCode, actualOutput)
 
-        // actualOutput = (function(actualOutput: any) {
-        //   eval(transformationCode)
-        //   return actualOutput
-        // })(actualOutput);
+        const transformedOutputFunction = new Function("actualOutput", transformationCode);
+        const transformedOutput = transformedOutputFunction(actualOutput);
+
+        console.log('transformedOutput', transformedOutput)
 
         const similarityScore = item.params.expectedOutput
           ? 1 - getSimilarity(
-              item.params.expectedOutput,
-              componentExamples
+              item.expectedOutput,
+              transformedOutput
             )
           : undefined
 
         results.push({
           ...item,
-          actualOutput: componentExamples,
+          actualOutput: transformedOutput,
           similarityScore: similarityScore ?? 0,
         })
       } catch {
         results.push({
           ...item,
-          actualOutput: { error: "Failed to get response from server" },
+          actualOutput: [{ result: "Failed to get response from server", embeddingSimilarity: 0 }],
           similarityScore: 0,
         })
       }
