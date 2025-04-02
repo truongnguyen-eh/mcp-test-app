@@ -59,7 +59,7 @@ export default function Home() {
         }
       )
 
-      const proxyServerUrl = isDevelopment ? "http://localhost:3000" : "https://mcp-test-app-proxy-aq0nnjtrf.vercel.app";
+      const proxyServerUrl = isDevelopment ? "http://localhost:3000" : "mcp-test-app-proxy.vercel.app";
       const backendUrl = new URL(`${proxyServerUrl}/sse`);
       backendUrl.searchParams.append("transportType", "sse");
       backendUrl.searchParams.append("url", config.sseUrl);
