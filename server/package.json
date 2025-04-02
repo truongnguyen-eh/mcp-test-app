@@ -8,20 +8,21 @@
   "bugs": "https://github.com/modelcontextprotocol/inspector/issues",
   "type": "module",
   "bin": {
-    "mcp-inspector-server": "build/index.js"
+    "mcp-inspector-server": "api/server.js"
   },
   "files": [
-    "build"
+    "api"
   ],
   "scripts": {
     "build": "tsc",
-    "start": "node build/index.js",
-    "dev": "tsx watch --clear-screen=false src/index.ts",
-    "dev:windows": "tsx watch --clear-screen=false src/index.ts < NUL"
+    "start": "node api/server.js",
+    "dev": "tsx watch --clear-screen=false src/server.ts",
+    "dev:windows": "tsx watch --clear-screen=false src/server.ts < NUL"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/shell-quote": "^1.7.5",
     "@types/ws": "^8.5.12",
     "tsx": "^4.19.0",
     "typescript": "^5.6.2"
@@ -30,6 +31,9 @@
     "@modelcontextprotocol/sdk": "^1.6.1",
     "cors": "^2.8.5",
     "express": "^4.21.0",
+    "serverless-http": "^3.1.0",
+    "shell-quote": "^1.8.2",
+    "spawn-rx": "^5.1.2",
     "ws": "^8.18.0",
     "zod": "^3.23.8"
   }
