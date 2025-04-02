@@ -183,18 +183,6 @@ app.get("/config", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-
-try {
-  const server = app.listen(PORT);
-
-  server.on("listening", () => {
-    const addr = server.address();
-    const port = typeof addr === "string" ? addr : addr?.port;
-    console.log(`Proxy server listening on port ${port}`);
-  });
-} catch (error) {
-  console.error("Failed to start server:", error);
-  process.exit(1);
-}
+app.listen(PORT, () => console.log("Server ready on port 3000."));
 
 export default app;
