@@ -16,6 +16,7 @@ import { OutputArea } from "../components/output-area"
 import { getSimilarity } from "../lib/utils"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
 import { TestItem, TestItemResult } from "../types/common"
+import { isDevelopment } from "@/utils/env"
 
 interface MCPConfig {
   transportType: string
@@ -58,11 +59,8 @@ export default function Home() {
         }
       )
 
-      const params = new URLSearchParams(window.location.search);
-      const PROXY_PORT = params.get("proxyPort") ?? "3000";
-      const PROXY_SERVER_URL = `http://${window.location.hostname}:${PROXY_PORT}`;
-
-      const backendUrl = new URL(`${PROXY_SERVER_URL}/sse`);
+      const proxyServerUrl = isDevelopment ? "http://localhost:3000" : "https://mcp-test-app-proxy-aq0nnjtrf.vercel.app";
+      const backendUrl = new URL(`${proxyServerUrl}/sse`);
       backendUrl.searchParams.append("transportType", "sse");
       backendUrl.searchParams.append("url", config.sseUrl);
 
