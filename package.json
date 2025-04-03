@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"cd client && npm run dev\" \"cd server && npm run dev\"",
     "build-server": "cd server && npm run build",
     "build-client": "cd client && npm run build",
     "build": "npm run build-server && npm run build-client",

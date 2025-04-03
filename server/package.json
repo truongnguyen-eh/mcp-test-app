@@ -8,14 +8,14 @@
   "bugs": "https://github.com/modelcontextprotocol/inspector/issues",
   "type": "module",
   "bin": {
-    "mcp-inspector-server": "api/server.js"
+    "mcp-inspector-server": "api/index.ts"
   },
   "files": [
     "api"
   ],
   "scripts": {
     "build": "tsc",
-    "start": "node api/index.js",
+    "start": "tsx api/index.ts",
     "dev": "tsx watch --clear-screen=false api/index.ts",
     "dev:windows": "tsx watch --clear-screen=false api/index.ts < NUL"
   },
