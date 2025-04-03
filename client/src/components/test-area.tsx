@@ -92,11 +92,11 @@ return transformOutput(actualOutput);
 
   if (!isConnected) {
     return (
-      <Alert>
-        <AlertDescription>
+      <div className="flex flex-col items-center justify-center h-full w-full text-center">
+        <h2 className="text-lg font-medium text-muted-foreground">
           Connect to an MCP server to start testing
-        </AlertDescription>
-      </Alert>
+        </h2>
+      </div>
     )
   }
 
